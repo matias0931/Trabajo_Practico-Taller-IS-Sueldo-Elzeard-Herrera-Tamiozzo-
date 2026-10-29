@@ -1,1 +1,2 @@
 # Trabajo_Practico-Taller-IS-Sueldo-Elzeard-Herrera-Tamiozzo-
+Primera entrega UML el patron utilizado es Strategy porque la idea es modelar el manejo de respuestas de usuario cuando sea una IA. El patron de aplica creando la interfaz 'automatica' con el metodo generar respuesta, lo implementan distintos tipos de iA (esto es una ventaja por si quisieramos agregar una inteligencia artificial seria mas agil).
