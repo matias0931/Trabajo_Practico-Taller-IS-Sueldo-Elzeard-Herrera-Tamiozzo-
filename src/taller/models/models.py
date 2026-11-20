@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from .extensions import db
+from ..extensions import db
 
 # Tabla intermedia muchos-a-muchos entre Pregunta y Tag
 pregunta_tags = db.Table(
