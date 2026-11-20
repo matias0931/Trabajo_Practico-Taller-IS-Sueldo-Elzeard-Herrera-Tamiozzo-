@@ -13,13 +13,13 @@ def create_app(environment="development"):
 
     db.init_app(app)
     migrate.init_app(app, db)
-
+    from .import models
     #Routes 
     from .routes.auth import bp as auth_bp
     from .routes.questions import bp as questions_bp
     from .routes.answers import bp as answers_bp
     from .routes.votes import bp as votes_bp
-
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(questions_bp)
     app.register_blueprint(answers_bp)
