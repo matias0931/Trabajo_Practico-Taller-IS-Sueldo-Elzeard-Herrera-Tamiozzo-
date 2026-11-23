@@ -82,3 +82,12 @@ def create_answer():
     _ANSWERS_DB.append(answer)
 
     return jsonify(_serialize_answer(answer)), 201
+@bp.get("/question/<question_id>")
+def list_answers_for_question(question_id):
+    # Permite múltiples respuestas para una misma pregunta
+    matching = [
+        _serialize_answer(ans)
+        for ans in _ANSWERS_DB
+        if str(ans["question_id"]) == str(question_id)
+    ]
+    return jsonify({"question_id": question_id, "answers": matching}), 200
