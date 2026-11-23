@@ -42,3 +42,43 @@ def _serialize_answer(answer: dict) -> dict:
             "badge": _author_badge(answer["author_type"]),  # "Humano" | "IA"
         },
     }
+@bp.post("/")
+def create_answer():
+    global _NEXT_ID
+
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "El cuerpo de la petición debe ser un JSON válido."}), 400
+
+    question_id = data.get("question_id")
+    if question_id is None or str(question_id).strip() == "":
+        return jsonify({"error": "El campo 'question_id' es obligatorio."}), 400
+
+    raw_body = data.get("body")
+    if not isinstance(raw_body, str):
+        return jsonify({"error": "El cuerpo de la respuesta debe ser un texto."}), 400
+
+    body = raw_body.strip()
+    if not body:
+        return jsonify({"error": "El cuerpo de una respuesta no puede estar vacío."}), 400
+    if len(body) < MIN_BODY_LENGTH:
+        return jsonify({
+            "error": f"El cuerpo de una respuesta debe contener al menos {MIN_BODY_LENGTH} caracteres."
+        }), 400
+
+    author_type = _normalize_author_type(data.get("author_type"))
+    published_at = datetime.now(timezone.utc).isoformat()
+
+    answer = {
+        "id": _NEXT_ID,
+        "question_id": question_id,
+        "body": body,
+        "published_at": published_at,
+        "is_accepted": False,
+        "author_id": data.get("author_id"),
+        "author_type": author_type,
+    }
+    _NEXT_ID += 1
+    _ANSWERS_DB.append(answer)
+
+    return jsonify(_serialize_answer(answer)), 201
