@@ -91,3 +91,16 @@ def list_answers_for_question(question_id):
         if str(ans["question_id"]) == str(question_id)
     ]
     return jsonify({"question_id": question_id, "answers": matching}), 200
+@bp.patch("/<int:answer_id>/accept")
+
+def mark_as_accepted(answer_id: int):
+    target = next((ans for ans in _ANSWERS_DB if ans["id"] == answer_id), None)
+    if target is None:
+        return jsonify({"error": "Respuesta no encontrada."}), 404
+
+    # Si solo puede haber una respuesta aceptada por pregunta, desmarcamos las demás de esa pregunta:
+    for ans in _ANSWERS_DB:
+        if ans["question_id"] == target["question_id"]:
+            ans["is_accepted"] = (ans["id"] == answer_id)
+
+    return jsonify(_serialize_answer(target)), 200
