@@ -1,5 +1,5 @@
 import os
-from flask import Flask 
+from flask import Flask, render_template
 from config import config
 from .extensions import db, migrate
 
@@ -24,5 +24,9 @@ def create_app(environment="development"):
     app.register_blueprint(questions_bp)
     app.register_blueprint(answers_bp)
     app.register_blueprint(votes_bp)
+
+    @app.get("/")
+    def index():
+       return render_template("index.html")
 
     return app
