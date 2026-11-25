@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session
+from flask import Blueprint, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from ..extensions import db
@@ -95,10 +95,7 @@ def login_post():
     session["usuario_id"] = usuario.id
     session["username"] = usuario.username
 
-    return render_template(
-        "login.html",
-        success=f"Bienvenido/a, {usuario.username}. Sesión iniciada correctamente."
-    )
+    return redirect(url_for("foro"))
 
 
 @bp.get("/logout")

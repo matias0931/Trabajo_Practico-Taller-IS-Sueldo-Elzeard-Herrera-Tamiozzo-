@@ -196,7 +196,11 @@
     <div class="nav-container">
       <a href="{{ url_for('index') }}" class="brand">QYA: foro de dudas</a>
       <nav class="nav-links">
-        <a href="{{ url_for('auth.logout') }}" class="btn btn-nav-outline">Cerrar sesión</a>
+        <a href="{{ url_for('foro') }}" class="btn btn-nav-outline">Ir al foro</a>
+        {% if session.get('usuario_id') %}
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-nav-outline">Cerrar sesión</a>
+        {% endif %}
+      </nav>
       </nav>
     </div>
   </header>
