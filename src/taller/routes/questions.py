@@ -3,7 +3,8 @@ from flask import Blueprint, jsonify, request
 
 # Importa db y los modelos según la estructura de tu proyecto
 # (Por ejemplo: from taller.models import db, Pregunta, Categoria, Tag)
-from taller.models import Categoria, Pregunta, Tag, db
+from ..extensions import db
+from ..models import Categoria, Pregunta, Tag
 
 bp = Blueprint("questions", __name__, url_prefix="/questions")
 
