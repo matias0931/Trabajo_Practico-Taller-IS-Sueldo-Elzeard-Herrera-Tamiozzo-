@@ -1,7 +1,5 @@
-from flask import Blueprint
-bp = Blueprint("auth", __name__, url_prefix="/auth")
-from flask import Blueprint, render_template, request
-from werkzeug.security import generate_password_hash
+from flask import Blueprint, render_template, request, session
+from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from ..extensions import db
 from ..models.models import Rol, UsuarioH
@@ -42,26 +40,26 @@ def register_post():
             "register.html",
             error="Correo inválido. No uses caracteres especiales y elegí un dominio permitido (@gmail.com, @hotmail.com, @outlook.com o @outlook.es)."
         )
-    
+
     # 3. Validar seguridad de la contraseña
     error_pass = validar_password(password)
     if error_pass:
         return render_template("register.html", error=error_pass)
 
-    # 4. Verificar que el Gmail no esté registrado ya
+    # 4. Verificar que el correo no esté registrado ya
     if UsuarioH.query.filter_by(email=email).first():
-        return render_template("register.html", error="Ya existe una cuenta registrada con ese correo de Gmail.")
+        return render_template("register.html", error="Ya existe una cuenta registrada con ese correo.")
 
     # 5. Verificar que el nombre de usuario no esté en uso
     if UsuarioH.query.filter_by(username=username).first():
         return render_template("register.html", error="Ese nombre de usuario ya está ocupado.")
 
-    # 6. Obtener o crear el rol 'estudiante' (porque rol_id es obligatorio en UsuarioH)
+    # 6. Obtener o crear el rol 'estudiante'
     rol_estudiante = Rol.query.filter_by(nombre="estudiante").first()
     if not rol_estudiante:
         rol_estudiante = Rol(nombre="estudiante")
         db.session.add(rol_estudiante)
-        db.session.flush()  # Genera el id del rol sin cerrar todavía la transacción
+        db.session.flush()
 
     # 7. Crear el usuario con la contraseña hasheada y guardar en SQLite
     nuevo_usuario = UsuarioH(
@@ -74,3 +72,36 @@ def register_post():
     db.session.commit()
 
     return render_template("register.html", success="¡Registro exitoso! Ya podés iniciar sesión.")
+
+
+@bp.get("/login")
+def login_get():
+    return render_template("login.html")
+
+
+@bp.post("/login")
+def login_post():
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+
+    if not email or not password:
+        return render_template("login.html", error="Completá el correo y la contraseña.")
+
+    usuario = UsuarioH.query.filter_by(email=email).first()
+
+    if not usuario or not check_password_hash(usuario.password_hash, password):
+        return render_template("login.html", error="Correo o contraseña incorrectos.")
+
+    session["user_id"] = usuario.id
+    session["username"] = usuario.username
+
+    return render_template(
+        "login.html",
+        success=f"Bienvenido/a, {usuario.username}. Sesión iniciada correctamente."
+    )
+
+
+@bp.get("/logout")
+def logout():
+    session.clear()
+    return render_template("login.html", success="Cerraste sesión correctamente.")
