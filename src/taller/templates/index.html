@@ -1,2 +1,251 @@
-<a href="{{ url_for('auth.login_get') }}">Iniciar sesión</a>
-<a href="{{ url_for('auth.register_get') }}">Registrarse</a>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QYA: foro de dudas</title>
+  <style>
+    :root {
+      --azul-univ: #1b365d;
+      --azul-oscuro: #122440;
+      --dorado-acento: #8b6f47;
+      --fondo: #f7f6f2;
+      --superficie: #ffffff;
+      --texto: #22262a;
+      --texto-secundario: #555c66;
+      --borde: #dcd9d0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background-color: var(--fondo);
+      color: var(--texto);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--azul-univ);
+      color: #ffffff;
+      border-bottom: 4px solid var(--dorado-acento);
+    }
+
+    .nav-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1.1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.45rem;
+      font-weight: normal;
+      letter-spacing: 0.4px;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.55rem 1.25rem;
+      font-size: 0.92rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 3px;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn-nav-outline {
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.65);
+    }
+
+    .btn-nav-outline:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+      border-color: #ffffff;
+    }
+
+    main {
+      flex: 1;
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem;
+    }
+
+    .hero {
+      background-color: var(--superficie);
+      border: 1px solid var(--borde);
+      border-top: 3px solid var(--azul-univ);
+      padding: 3rem 2.5rem;
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 0.78rem;
+      color: var(--dorado-acento);
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: var(--azul-univ);
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      max-width: 640px;
+      margin: 0 auto 2rem auto;
+      color: var(--texto-secundario);
+      font-size: 1.02rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background-color: var(--azul-univ);
+      color: #ffffff;
+      border: 1px solid var(--azul-univ);
+      padding: 0.7rem 1.75rem;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--azul-oscuro);
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--azul-univ);
+      border: 1px solid var(--azul-univ);
+      padding: 0.7rem 1.75rem;
+    }
+
+    .btn-secondary:hover {
+      background-color: #eef1f6;
+    }
+
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .pillar-card {
+      background-color: var(--superficie);
+      border: 1px solid var(--borde);
+      padding: 1.75rem;
+    }
+
+    .pillar-card h2 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.15rem;
+      font-weight: normal;
+      color: var(--azul-univ);
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--borde);
+    }
+
+    .pillar-card p {
+      font-size: 0.93rem;
+      color: var(--texto-secundario);
+    }
+
+    footer {
+      border-top: 1px solid var(--borde);
+      background-color: var(--superficie);
+      color: var(--texto-secundario);
+      text-align: center;
+      padding: 1.25rem 1.5rem;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="{{ url_for('index') }}" class="brand">QYA: foro de dudas</a>
+      <nav class="nav-links">
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-nav-outline">Cerrar sesión</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-eyebrow">Plataforma Académica de Consultas</div>
+      <h1>Foro estudiantil</h1>
+      <p>
+        Espacio universitario destinado al intercambio riguroso de conocimiento.
+        Publicá tus consultas, colaborá con respuestas fundamentadas y validá las
+        soluciones más útiles junto a la comunidad.
+      </p>
+      <div class="hero-actions">
+        <a href="{{ url_for('auth.login_get') }}" class="btn btn-primary">Iniciar sesión</a>
+        <a href="{{ url_for('auth.register_get') }}" class="btn btn-secondary">Crear cuenta universitaria</a>
+      </div>
+    </section>
+
+    <section class="pillars">
+      <article class="pillar-card">
+        <h2>Consultas estructuradas</h2>
+        <p>
+          Organizá tus preguntas por categoría y etiquetas temáticas para recibir
+          orientación precisa de otros estudiantes.
+        </p>
+      </article>
+
+      <article class="pillar-card">
+        <h2>Validación comunitaria</h2>
+        <p>
+          Evaluá aportes mediante votos y destacá la respuesta aceptada como
+          referencia para futuras consultas.
+        </p>
+      </article>
+
+      <article class="pillar-card">
+        <h2>Asistencia automatizada</h2>
+        <p>
+          Contá con respuestas generadas por inteligencia artificial al etiquetar
+          con <strong>#ia</strong> o ante consultas sin respuesta tras 24 horas.
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    QYA: foro de dudas &mdash; Taller de Ingeniería de Software
+  </footer>
+
+</body>
+</html>
