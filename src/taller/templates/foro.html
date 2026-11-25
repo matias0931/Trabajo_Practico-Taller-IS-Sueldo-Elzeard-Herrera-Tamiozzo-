@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foro estudiantil — QYA</title>
+  <style>
+    :root {
+      --azul-univ: #1b365d;
+      --azul-oscuro: #122440;
+      --dorado-acento: #8b6f47;
+      --fondo: #f7f6f2;
+      --superficie: #ffffff;
+      --texto: #22262a;
+      --texto-secundario: #555c66;
+      --borde: #dcd9d0;
+      --ia-bg: #eef3f9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background-color: var(--fondo);
+      color: var(--texto);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--azul-univ);
+      color: #ffffff;
+      border-bottom: 4px solid var(--dorado-acento);
+    }
+
+    .nav-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1.1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.45rem;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.55rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn-nav-outline {
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.65);
+    }
+
+    .btn-nav-outline:hover {
+      background-color: rgba(255, 255, 255, 0.12);
+      border-color: #ffffff;
+    }
+
+    .btn-primary {
+      background-color: var(--azul-univ);
+      color: #ffffff;
+      border: 1px solid var(--azul-univ);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--azul-oscuro);
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--azul-univ);
+      border: 1px solid var(--azul-univ);
+      padding: 0.4rem 0.9rem;
+      font-size: 0.85rem;
+    }
+
+    .btn-secondary:hover {
+      background-color: #eef1f6;
+    }
+
+    main {
+      flex: 1;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .page-title {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2rem;
+      color: var(--azul-univ);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--borde);
+    }
+
+    .card {
+      background-color: var(--superficie);
+      border: 1px solid var(--borde);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-nueva {
+      border-top: 3px solid var(--azul-univ);
+    }
+
+    .card h2 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.25rem;
+      color: var(--azul-univ);
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--texto);
+      margin-bottom: 0.35rem;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--borde);
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      background-color: #fcfcfa;
+    }
+
+    textarea {
+      min-height: 95px;
+      resize: vertical;
+    }
+
+    .msg {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .msg.error { color: #a61c1c; }
+    .msg.ok { color: #1f6b3b; }
+
+    .pregunta-meta {
+      font-size: 0.82rem;
+      color: var(--texto-secundario);
+      margin-bottom: 0.75rem;
+    }
+
+    .pregunta-cuerpo {
+      margin-bottom: 1rem;
+      white-space: pre-wrap;
+    }
+
+    .tags {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .tag {
+      font-size: 0.78rem;
+      background-color: #efede6;
+      color: var(--azul-univ);
+      border: 1px solid var(--borde);
+      padding: 0.15rem 0.55rem;
+      border-radius: 2px;
+      font-weight: 600;
+    }
+
+    .respuestas-box {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--borde);
+      display: none;
+    }
+
+    .respuesta-item {
+      background-color: #faf9f6;
+      border: 1px solid var(--borde);
+      padding: 0.9rem 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .respuesta-item.ia {
+      background-color: var(--ia-bg);
+      border-left: 3px solid var(--azul-univ);
+    }
+
+    .badge-ia {
+      display: inline-block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      background-color: var(--azul-univ);
+      color: #ffffff;
+      padding: 0.1rem 0.45rem;
+      border-radius: 2px;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-respuesta {
+      margin-top: 1rem;
+    }
+
+    .vacio {
+      text-align: center;
+      color: var(--texto-secundario);
+      padding: 2rem;
+      background-color: var(--superficie);
+      border: 1px solid var(--borde);
+    }
+
+    footer {
+      border-top: 1px solid var(--borde);
+      background-color: var(--superficie);
+      color: var(--texto-secundario);
+      text-align: center;
+      padding: 1.25rem 1.5rem;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="{{ url_for('index') }}" class="brand">QYA: foro de dudas</a>
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}" class="btn btn-nav-outline">Inicio</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-nav-outline">Cerrar sesión</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <h1 class="page-title">Foro estudiantil</h1>
+
+    <!-- Formulario para publicar una nueva pregunta -->
+    <section class="card card-nueva">
+      <h2>Publicar una nueva consulta</h2>
+      <form id="form-pregunta">
+        <div class="form-group">
+          <label for="titulo">Título</label>
+          <input type="text" id="titulo" required placeholder="Ej.: ¿Cómo funciona la normalización en 3FN?">
+        </div>
+
+        <div class="form-group">
+          <label for="cuerpo">Detalle de la consulta</label>
+          <textarea id="cuerpo" required placeholder="Describí tu duda con claridad..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="tags">Etiquetas (separadas por coma; usá #ia para respuesta automática)</label>
+          <input type="text" id="tags" placeholder="Ej.: bases-de-datos, #ia">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Publicar consulta</button>
+        <div id="msg-pregunta" class="msg"></div>
+      </form>
+    </section>
+
+    <!-- Listado de preguntas -->
+    <section>
+      {% if preguntas %}
+        {% for p in preguntas %}
+          <article class="card">
+            <h2>{{ p.titulo }}</h2>
+            <div class="pregunta-meta">
+              Consulta #{{ p.id }}
+              {% if p.creada_en %}
+                &mdash; {{ p.creada_en.strftime('%d/%m/%Y %H:%M') }}
+              {% endif %}
+            </div>
+            <p class="pregunta-cuerpo">{{ p.cuerpo }}</p>
+
+            {% if p.tags %}
+              <div class="tags">
+                {% for t in p.tags %}
+                  <span class="tag">{{ t.nombre }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="toggleRespuestas({{ p.id }})"
+            >
+              Ver / responder
+            </button>
+
+            <div id="respuestas-{{ p.id }}" class="respuestas-box">
+              <div id="lista-respuestas-{{ p.id }}">Cargando respuestas...</div>
+
+              <form class="form-respuesta" onsubmit="enviarRespuesta(event, {{ p.id }})">
+                <div class="form-group">
+                  <label for="resp-cuerpo-{{ p.id }}">Tu respuesta</label>
+                  <textarea id="resp-cuerpo-{{ p.id }}" required placeholder="Escribí una respuesta fundamentada..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Enviar respuesta</button>
+                <div id="msg-resp-{{ p.id }}" class="msg"></div>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      {% else %}
+        <div class="vacio">
+          Todavía no hay consultas publicadas. ¡Sé la primera persona en preguntar!
+        </div>
+      {% endif %}
+    </section>
+  </main>
+
+  <footer>
+    QYA: foro de dudas &mdash; Taller de Ingeniería de Software
+  </footer>
+
+  <script>
+    // Publicar nueva pregunta -> POST /questions/
+    const CURRENT_USER_ID = {{ user_id }};
+    document.getElementById("form-pregunta").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById("msg-pregunta");
+      msg.className = "msg";
+      msg.textContent = "Publicando...";
+
+      const titulo = document.getElementById("titulo").value.trim();
+      const cuerpo = document.getElementById("cuerpo").value.trim();
+      const tagsRaw = document.getElementById("tags").value.trim();
+      const tags = tagsRaw
+        ? tagsRaw.split(",").map(t => t.trim()).filter(Boolean)
+        : [];
+
+      try {
+        const res = await fetch("/questions/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            titulo,
+            cuerpo,
+            tags,
+            categoria_id: 1,
+            usuario_id: CURRENT_USER_ID
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          msg.className = "msg error";
+          msg.textContent = data.error || data.message || JSON.stringify(data);
+          return;
+        }
+
+        msg.className = "msg ok";
+        msg.textContent = "Consulta publicada. Actualizando...";
+        window.location.reload();
+      } catch (err) {
+        msg.className = "msg error";
+        msg.textContent = "Error de conexión con el servidor.";
+      }
+    });
+
+    // Mostrar/ocultar y cargar respuestas -> GET /answers/question/<id>
+    async function toggleRespuestas(preguntaId) {
+      const box = document.getElementById(`respuestas-${preguntaId}`);
+      if (box.style.display === "block") {
+        box.style.display = "none";
+        return;
+      }
+      box.style.display = "block";
+      await cargarRespuestas(preguntaId);
+    }
+
+    async function cargarRespuestas(preguntaId) {
+      const lista = document.getElementById(`lista-respuestas-${preguntaId}`);
+      lista.textContent = "Cargando respuestas...";
+
+      try {
+        const res = await fetch(`/answers/question/${preguntaId}`);
+        const data = await res.json();
+
+        const respuestas = Array.isArray(data) ? data : (data.answers || data.respuestas || []);
+        if (respuestas.length === 0) {
+          lista.innerHTML = "<p style='color:#555c66;font-size:0.9rem;'>Aún no hay respuestas para esta consulta.</p>";
+          return;
+        }
+
+      lista.innerHTML = respuestas.map(r => `
+      <div class="respuesta-item ${(r.is_ai || r.es_ia) ? 'ia' : ''}">
+    ${(r.is_ai || r.es_ia) ? '<span class="badge-ia">Respuesta IA</span><br>' : ''}
+    <div>${r.body || r.cuerpo || r.contenido || ''}</div>
+  </div>
+`).join(""); }
+catch (err) {
+        lista.textContent = "No se pudieron cargar las respuestas.";
+      }
+    }
+
+    // Enviar respuesta -> POST /answers/
+    async function enviarRespuesta(e, preguntaId) {
+      e.preventDefault();
+      const textarea = document.getElementById(`resp-cuerpo-${preguntaId}`);
+      const msg = document.getElementById(`msg-resp-${preguntaId}`);
+      msg.className = "msg";
+      msg.textContent = "Enviando...";
+
+      try {
+        const res = await fetch("/answers/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question_id: preguntaId,
+  body: textarea.value.trim(),
+    user_id: CURRENT_USER_ID
+})
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          msg.className = "msg error";
+          msg.textContent = data.error || "No se pudo guardar la respuesta.";
+          return;
+        }
+
+        textarea.value = "";
+        msg.className = "msg ok";
+        msg.textContent = "Respuesta publicada.";
+        await cargarRespuestas(preguntaId);
+      } catch (err) {
+        msg.className = "msg error";
+        msg.textContent = "Error de conexión con el servidor.";
+      }
+    }
+  </script>
+
+</body>
+</html>
