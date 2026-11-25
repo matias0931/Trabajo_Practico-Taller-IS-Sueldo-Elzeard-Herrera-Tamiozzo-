@@ -9,9 +9,8 @@ bp = Blueprint("votes", __name__, url_prefix="/votes")
 def usuario_id_actual():
     """Devuelve el id del usuario logueado o None.
 
-    Este es el único punto de integración con el issue de login. Cuando el
-    login esté implementado, acá se puede leer la sesión, Flask-Login o el
-    mecanismo que se elija sin tocar el resto de las rutas.
+    El login guarda el id en session["usuario_id"]. Si más adelante se cambia
+    el mecanismo de autenticación, este es el único lugar que hay que tocar.
     """
     return session.get("usuario_id")
 

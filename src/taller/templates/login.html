@@ -133,10 +133,10 @@
             <div class="alert alert-success"><strong>¡Listo!</strong> {{ success }}</div>
         {% endif %}
 
-        {% if session.get("user_id") %}
+        {% if session.get("usuario_id") %}
             <div class="session-box">
                 Sesión activa como <strong>{{ session.get("username") }}</strong>
-                <br><small>(ID de usuario: {{ session.get("user_id") }})</small>
+                <br><small>(ID de usuario: {{ session.get("usuario_id") }})</small>
             </div>
             <a href="{{ url_for('auth.logout') }}" class="btn-logout">Cerrar sesión</a>
         {% else %}
