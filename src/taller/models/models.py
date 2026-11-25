@@ -65,6 +65,23 @@ class Respuesta(db.Model):
 
 class Voto(db.Model):
     __tablename__ = "votos"
+    __table_args__ = (
+        # El voto solamente puede ser positivo o negativo.
+        db.CheckConstraint("valor IN (-1, 1)", name="ck_votos_valor"),
+        # Un voto apunta a una pregunta o a una respuesta, nunca a las dos.
+        db.CheckConstraint(
+            "(pregunta_id IS NOT NULL) != (respuesta_id IS NOT NULL)",
+            name="ck_votos_un_destino",
+        ),
+        # Un usuario puede votar una sola vez cada pregunta.
+        db.UniqueConstraint(
+            "usuario_id", "pregunta_id", name="uq_votos_usuario_pregunta"
+        ),
+        # Un usuario puede votar una sola vez cada respuesta.
+        db.UniqueConstraint(
+            "usuario_id", "respuesta_id", name="uq_votos_usuario_respuesta"
+        ),
+    )
     id = db.Column(db.Integer, primary_key=True)
     valor = db.Column(db.Integer, nullable=False)  # +1 o -1
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios_h.id"), nullable=False)
