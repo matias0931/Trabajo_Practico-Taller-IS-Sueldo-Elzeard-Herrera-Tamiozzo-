@@ -106,6 +106,6 @@ def logout():
     session.clear()
     return render_template("login.html", success="Cerraste sesión correctamente.")
 
-@app.route("/")
+@bp.route("/")
 def index():
     return render_template("index.html")
