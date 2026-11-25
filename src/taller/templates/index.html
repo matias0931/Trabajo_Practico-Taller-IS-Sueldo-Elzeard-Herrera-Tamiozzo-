@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio | Portal Estudiantil</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 24px;
+        }
+        .nav-container {
+            max-width: 960px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .brand {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #111827;
+            text-decoration: none;
+        }
+        .brand span {
+            color: #2563eb;
+        }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-user {
+            font-size: 0.9rem;
+            color: #374151;
+            margin-right: 4px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-outline {
+            background-color: #ffffff;
+            color: #2563eb;
+            border-color: #2563eb;
+        }
+        .btn-outline:hover {
+            background-color: #eff6ff;
+        }
+        .btn-danger {
+            background-color: #dc2626;
+            color: #ffffff;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+        main {
+            flex: 1;
+            max-width: 960px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 36px 20px;
+        }
+        .hero {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+        .hero h1 {
+            margin: 0 0 10px 0;
+            font-size: 1.8rem;
+            color: #111827;
+        }
+        .hero p {
+            margin: 0 0 20px 0;
+            color: #4b5563;
+            line-height: 1.5;
+            max-width: 650px;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+        .card h2 {
+            margin: 0 0 8px 0;
+            font-size: 1.15rem;
+            color: #111827;
+        }
+        .card p {
+            margin: 0;
+            font-size: 0.92rem;
+            color: #4b5563;
+            line-height: 1.45;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+            margin-bottom: 12px;
+        }
+        footer {
+            text-align: center;
+            padding: 18px;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="brand">Servidor<span>App</span></a>
+
+            <nav class="nav-actions">
+                {% if session.get("user_id") %}
+                    <span class="nav-user">Hola, <strong>{{ session.get("username") }}</strong></span>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Cerrar sesión</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login_get') }}" class="btn btn-outline">Iniciar sesión</a>
+                    <a href="{{ url_for('auth.register_get') }}" class="btn btn-primary">Registrarse</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <span class="badge">Servidor Flask</span>
+            {% if session.get("user_id") %}
+                <h1>Bienvenido de nuevo, {{ session.get("username") }}</h1>
+                <p>
+                    Tu sesión está activa en el sistema. Desde aquí puedes navegar por las secciones
+                    disponibles o cerrar sesión cuando termines.
+                </p>
+                <div class="hero-buttons">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Cerrar sesión</a>
+                </div>
+            {% else %}
+                <h1>Bienvenido al sistema</h1>
+                <p>
+                    Plataforma web desarrollada con Flask. Crea una cuenta de estudiante o inicia sesión
+                    con tu correo electrónico para acceder a las funciones del servidor.
+                </p>
+                <div class="hero-buttons">
+                    <a href="{{ url_for('auth.register_get') }}" class="btn btn-primary">Crear cuenta</a>
+                    <a href="{{ url_for('auth.login_get') }}" class="btn btn-outline">Ya tengo cuenta</a>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="grid">
+            <article class="card">
+                <h2>Acceso seguro</h2>
+                <p>Autenticación mediante correo electrónico, contraseña y manejo de sesiones en el servidor.</p>
+            </article>
+            <article class="card">
+                <h2>Registro de estudiantes</h2>
+                <p>Alta de nuevas cuentas con validaciones en el formulario y control de datos.</p>
+            </article>
+            <article class="card">
+                <h2>Arquitectura modular</h2>
+                <p>Rutas organizadas con Blueprints y vistas separadas para mantener el código ordenado.</p>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        Servidor web en Flask · Proyecto en desarrollo
+    </footer>
+</body>
+</html>
