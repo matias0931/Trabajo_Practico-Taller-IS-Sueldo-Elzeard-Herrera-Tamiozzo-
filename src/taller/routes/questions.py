@@ -1,3 +1,4 @@
+from ..services.ai_service import crear_respuesta_ia, responder_preguntas_sin_respuesta
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request, session
 
@@ -89,6 +90,17 @@ def create_question():
         500,
     )
 
+  # 4.5. Disparador automático por tag "#ia" (Issue #5)
+  respuesta_ia = None
+  tiene_tag_ia = any(
+      t.nombre.strip().lower() == "#ia" for t in nueva_pregunta.tags
+  )
+  if tiene_tag_ia:
+    try:
+      respuesta_ia = crear_respuesta_ia(nueva_pregunta)
+    except Exception:
+      db.session.rollback()
+
   # 5. Respuesta JSON formateada
   return (
       jsonify({
@@ -99,6 +111,22 @@ def create_question():
           "categoria_id": nueva_pregunta.categoria_id,
           "usuario_id": nueva_pregunta.usuario_id,
           "tags": [t.nombre for t in nueva_pregunta.tags],
+          "respuesta_ia": respuesta_ia.cuerpo if respuesta_ia else None,
       }),
       201,
   )
+
+
+@bp.post("/ia/pendientes")
+def procesar_pendientes_ia():
+  generadas = responder_preguntas_sin_respuesta(horas=24)
+  return (
+      jsonify({
+          "respuestas_generadas": len(generadas),
+          "preguntas_respondidas": [r.pregunta_id for r in generadas],
+      }),
+      200,
+  )
+
+
+ 
