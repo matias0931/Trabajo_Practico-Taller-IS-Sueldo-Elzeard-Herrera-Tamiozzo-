@@ -92,7 +92,7 @@ def login_post():
     if not usuario or not check_password_hash(usuario.password_hash, password):
         return render_template("login.html", error="Correo o contraseña incorrectos.")
 
-    session["user_id"] = usuario.id
+    session["usuario_id"] = usuario.id
     session["username"] = usuario.username
 
     return render_template(
