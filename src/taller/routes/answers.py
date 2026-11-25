@@ -1,12 +1,9 @@
-from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 
-bp = Blueprint("answers", __name__, url_prefix="/answers")
+from ..extensions import db
+from ..models.models import Pregunta, Respuesta
 
-# Estructura temporal en memoria para probar rápido.
-# Cuando integren con el modelo/BD del proyecto, reemplazá esto por el repositorio/ORM.
-_ANSWERS_DB: list[dict] = []
-_NEXT_ID = 1
+bp = Blueprint("answers", __name__, url_prefix="/answers")
 
 MIN_BODY_LENGTH = 5
 VALID_AUTHOR_TYPES = {"human", "ai"}
@@ -29,30 +26,36 @@ def _author_badge(author_type: str) -> str:
     return "IA" if author_type == "ai" else "Humano"
 
 
-def _serialize_answer(answer: dict) -> dict:
+def _serialize_answer(respuesta: Respuesta) -> dict:
+    author_type = "ai" if respuesta.es_ia else "human"
     return {
-        "id": answer["id"],
-        "question_id": answer["question_id"],
-        "body": answer["body"],
-        "published_at": answer["published_at"],
-        "is_accepted": answer["is_accepted"],
+        "id": respuesta.id,
+        "question_id": respuesta.pregunta_id,
+        "body": respuesta.cuerpo,
+        "published_at": respuesta.creada_en.isoformat(),
+        "is_accepted": respuesta.aceptada,
         "author": {
-            "id": answer["author_id"],
-            "type": answer["author_type"],  # "human" | "ai"
-            "badge": _author_badge(answer["author_type"]),  # "Humano" | "IA"
+            "id": respuesta.usuario_id,
+            "type": author_type,  # "human" | "ai"
+            "badge": _author_badge(author_type),  # "Humano" | "IA"
         },
     }
+
+
 @bp.post("/")
 def create_answer():
-    global _NEXT_ID
-
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify({"error": "El cuerpo de la petición debe ser un JSON válido."}), 400
 
-    question_id = data.get("question_id")
-    if question_id is None or str(question_id).strip() == "":
+    raw_question_id = data.get("question_id")
+    if raw_question_id is None or str(raw_question_id).strip() == "":
         return jsonify({"error": "El campo 'question_id' es obligatorio."}), 400
+
+    try:
+        question_id = int(raw_question_id)
+    except (TypeError, ValueError):
+        return jsonify({"error": "El campo 'question_id' debe ser un número entero."}), 400
 
     raw_body = data.get("body")
     if not isinstance(raw_body, str):
@@ -66,41 +69,60 @@ def create_answer():
             "error": f"El cuerpo de una respuesta debe contener al menos {MIN_BODY_LENGTH} caracteres."
         }), 400
 
+    # La respuesta debe apuntar a una pregunta que exista en la base de datos.
+    pregunta = db.session.get(Pregunta, question_id)
+    if pregunta is None:
+        return jsonify({"error": "La pregunta indicada no existe."}), 404
+
     author_type = _normalize_author_type(data.get("author_type"))
-    published_at = datetime.now(timezone.utc).isoformat()
+    author_id = data.get("author_id")
 
-    answer = {
-        "id": _NEXT_ID,
-        "question_id": question_id,
-        "body": body,
-        "published_at": published_at,
-        "is_accepted": False,
-        "author_id": data.get("author_id"),
-        "author_type": author_type,
-    }
-    _NEXT_ID += 1
-    _ANSWERS_DB.append(answer)
+    # Las respuestas de IA no tienen un usuario humano asociado.
+    if author_type == "ai":
+        author_id = None
+    elif author_id is not None:
+        try:
+            author_id = int(author_id)
+        except (TypeError, ValueError):
+            return jsonify({"error": "El campo 'author_id' debe ser un número entero."}), 400
 
-    return jsonify(_serialize_answer(answer)), 201
-@bp.get("/question/<question_id>")
+    respuesta = Respuesta(
+        cuerpo=body,
+        pregunta_id=question_id,
+        usuario_id=author_id,
+        es_ia=(author_type == "ai"),
+        aceptada=False,
+    )
+    db.session.add(respuesta)
+    db.session.commit()
+
+    return jsonify(_serialize_answer(respuesta)), 201
+
+
+@bp.get("/question/<int:question_id>")
 def list_answers_for_question(question_id):
     # Permite múltiples respuestas para una misma pregunta
-    matching = [
-        _serialize_answer(ans)
-        for ans in _ANSWERS_DB
-        if str(ans["question_id"]) == str(question_id)
-    ]
-    return jsonify({"question_id": question_id, "answers": matching}), 200
-@bp.patch("/<int:answer_id>/accept")
+    respuestas = (
+        Respuesta.query.filter_by(pregunta_id=question_id)
+        .order_by(Respuesta.creada_en.asc())
+        .all()
+    )
+    return jsonify({
+        "question_id": question_id,
+        "answers": [_serialize_answer(respuesta) for respuesta in respuestas],
+    }), 200
 
+
+@bp.patch("/<int:answer_id>/accept")
 def mark_as_accepted(answer_id: int):
-    target = next((ans for ans in _ANSWERS_DB if ans["id"] == answer_id), None)
-    if target is None:
+    respuesta = db.session.get(Respuesta, answer_id)
+    if respuesta is None:
         return jsonify({"error": "Respuesta no encontrada."}), 404
 
-    # Si solo puede haber una respuesta aceptada por pregunta, desmarcamos las demás de esa pregunta:
-    for ans in _ANSWERS_DB:
-        if ans["question_id"] == target["question_id"]:
-            ans["is_accepted"] = (ans["id"] == answer_id)
+    # Si solo puede haber una respuesta aceptada por pregunta, desmarcamos las demás.
+    for otra in Respuesta.query.filter_by(pregunta_id=respuesta.pregunta_id).all():
+        otra.aceptada = (otra.id == answer_id)
 
-    return jsonify(_serialize_answer(target)), 200
+    db.session.commit()
+
+    return jsonify(_serialize_answer(respuesta)), 200
