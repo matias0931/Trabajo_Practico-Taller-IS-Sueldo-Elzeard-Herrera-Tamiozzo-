@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 
 # Importa db y los modelos según la estructura de tu proyecto
 # (Por ejemplo: from taller.models import db, Pregunta, Categoria, Tag)
@@ -11,6 +11,11 @@ bp = Blueprint("questions", __name__, url_prefix="/questions")
 
 @bp.post("/")
 def create_question():
+  # La identidad del autor sale de la sesión iniciada (issue #7).
+  usuario_id = session.get("usuario_id")
+  if not usuario_id:
+    return jsonify({"error": "Debés iniciar sesión para publicar una pregunta."}), 401
+
   data = request.get_json(silent=True) or {}
 
   # 1. Obtener y limpiar datos de la petición
@@ -18,9 +23,6 @@ def create_question():
   cuerpo = data.get("body") or data.get("cuerpo")
   categoria_id = data.get("category_id") or data.get("categoria_id")
   tag_ids_o_nombres = data.get("tags", [])
-  usuario_id = data.get("user_id") or data.get(
-      "usuario_id"
-  )  # O desde la sesión/token JWT del estudiante
 
   errors = []
 
@@ -43,9 +45,6 @@ def create_question():
       errors.append(
           f"La categoría con ID {categoria_id} no existe en la base de datos."
       )
-
-  if not usuario_id:
-    errors.append("Debe indicarse el ID del usuario/estudiante que publica.")
 
   if errors:
     return jsonify({"errors": errors}), 400
