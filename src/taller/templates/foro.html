@@ -105,6 +105,51 @@
       background-color: #eef1f6;
     }
 
+    .vote-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .btn-vote {
+      padding: 0.05rem 0.45rem;
+      border: 1px solid var(--borde);
+      background: #fff;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .puntaje {
+      min-width: 1.5rem;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .vote-label {
+      font-size: 0.78rem;
+      color: var(--texto-secundario);
+    }
+
+    .btn-aceptar {
+      font-size: 0.78rem;
+      padding: 0.1rem 0.5rem;
+      margin-left: 0.5rem;
+      border: 1px solid #1f6b3b;
+      color: #1f6b3b;
+      background: #fff;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .aceptada {
+      color: #1f6b3b;
+      font-weight: 600;
+      font-size: 0.78rem;
+      margin-left: 0.5rem;
+    }
+
     main {
       flex: 1;
       max-width: 960px;
@@ -319,6 +364,13 @@
               </div>
             {% endif %}
 
+            <div class="vote-row">
+              <span class="vote-label">Puntaje:</span>
+              <button type="button" class="btn-vote" onclick="votar('questions', {{ p.id }}, 1, 'puntaje-p-{{ p.id }}')">▲</button>
+              <span class="puntaje" id="puntaje-p-{{ p.id }}">{{ votos[p.id].puntaje }}</span>
+              <button type="button" class="btn-vote" onclick="votar('questions', {{ p.id }}, -1, 'puntaje-p-{{ p.id }}')">▼</button>
+            </div>
+
             <button
               type="button"
               class="btn btn-secondary"
@@ -327,7 +379,7 @@
               Ver / responder
             </button>
 
-            <div id="respuestas-{{ p.id }}" class="respuestas-box">
+            <div id="respuestas-{{ p.id }}" class="respuestas-box" data-autor="{{ p.usuario_id }}">
               <div id="lista-respuestas-{{ p.id }}">Cargando respuestas...</div>
 
               <form class="form-respuesta" onsubmit="enviarRespuesta(event, {{ p.id }})">
@@ -423,13 +475,26 @@
           return;
         }
 
-      lista.innerHTML = respuestas.map(r => `
-      <div class="respuesta-item ${(r.is_ai || r.es_ia) ? 'ia' : ''}">
-    ${(r.is_ai || r.es_ia) ? '<span class="badge-ia">Respuesta IA</span><br>' : ''}
-    <div>${r.body || r.cuerpo || r.contenido || ''}</div>
-  </div>
-`).join(""); }
-catch (err) {
+        const autorPregunta = Number(
+          document.getElementById(`respuestas-${preguntaId}`).dataset.autor
+        );
+        const puedeAceptar = autorPregunta === Number(CURRENT_USER_ID);
+
+        lista.innerHTML = respuestas.map(r => `
+      <div class="respuesta-item ${r.author?.type === 'ai' ? 'ia' : ''}">
+        ${r.author?.type === 'ai' ? '<span class="badge-ia">Respuesta IA</span><br>' : ''}
+        <div class="vote-row">
+          <span class="vote-label">Puntaje:</span>
+          <button type="button" class="btn-vote" onclick="votar('answers', ${r.id}, 1, 'puntaje-a-${r.id}')">▲</button>
+          <span class="puntaje" id="puntaje-a-${r.id}">${r.votes ? r.votes.puntaje : 0}</span>
+          <button type="button" class="btn-vote" onclick="votar('answers', ${r.id}, -1, 'puntaje-a-${r.id}')">▼</button>
+          ${puedeAceptar ? `<button type="button" class="btn-aceptar" onclick="toggleAceptada(${r.id}, ${r.is_accepted}, ${r.question_id})">${r.is_accepted ? 'Quitar aceptada' : 'Aceptar'}</button>` : ''}
+          ${r.is_accepted ? '<span class="aceptada">✔ Aceptada</span>' : ''}
+        </div>
+        <div>${r.body || ''}</div>
+      </div>
+    `).join("");
+      } catch (err) {
         lista.textContent = "No se pudieron cargar las respuestas.";
       }
     }
@@ -467,6 +532,31 @@ catch (err) {
       } catch (err) {
         msg.className = "msg error";
         msg.textContent = "Error de conexión con el servidor.";
+      }
+    }
+
+    // Votar pregunta o respuesta -> POST /votes/<tipo>/<id>
+    async function votar(tipo, id, valor, puntajeId) {
+      try {
+        const res = await fetch(`/votes/${tipo}/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ valor })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById(puntajeId).textContent = data.puntaje;
+        }
+      } catch (err) {}
+    }
+
+    // Aceptar / quitar aceptada -> PATCH o DELETE /answers/<id>/accept
+    async function toggleAceptada(answerId, aceptada, preguntaId) {
+      const res = await fetch(`/answers/${answerId}/accept`, {
+        method: aceptada ? "DELETE" : "PATCH"
+      });
+      if (res.ok) {
+        await cargarRespuestas(preguntaId);
       }
     }
   </script>

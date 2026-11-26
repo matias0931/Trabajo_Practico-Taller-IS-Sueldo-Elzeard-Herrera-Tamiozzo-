@@ -45,6 +45,12 @@ def create_app(environment="development"):
             db.session.commit()
 
         preguntas = Pregunta.query.order_by(Pregunta.creada_en.desc()).all()
-        return render_template("foro.html", preguntas=preguntas, user_id=user_id)
+
+        from .routes.votes import _resumen_votos
+        votos = {p.id: _resumen_votos(user_id, pregunta=p) for p in preguntas}
+
+        return render_template(
+            "foro.html", preguntas=preguntas, user_id=user_id, votos=votos
+        )
 
     return app

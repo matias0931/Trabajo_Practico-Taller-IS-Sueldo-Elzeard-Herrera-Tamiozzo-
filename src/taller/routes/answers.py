@@ -4,6 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from ..extensions import db
 from ..models.models import Pregunta, Respuesta
 from ..services.ai_service import crear_respuesta_ia
+from .votes import _resumen_votos
 
 bp = Blueprint("answers", __name__, url_prefix="/answers")
 
@@ -37,7 +38,7 @@ def _usuario_id_sesion() -> int | None:
         return None
 
 
-def _serialize_answer(respuesta: Respuesta) -> dict:
+def _serialize_answer(respuesta: Respuesta, usuario_id: int | None = None) -> dict:
     author_type = "ai" if respuesta.es_ia else "human"
     return {
         "id": respuesta.id,
@@ -50,6 +51,7 @@ def _serialize_answer(respuesta: Respuesta) -> dict:
             "type": author_type,  # "human" | "ai"
             "badge": _author_badge(author_type),  # "Humano" | "IA"
         },
+        "votes": _resumen_votos(usuario_id, respuesta=respuesta),
     }
 
 
@@ -107,7 +109,7 @@ def create_answer():
         except (ValueError, SQLAlchemyError):
             db.session.rollback()
             return jsonify({"error": "No se pudo generar la respuesta de IA."}), 502
-        return jsonify(_serialize_answer(respuesta)), 201
+        return jsonify(_serialize_answer(respuesta, _usuario_id_sesion())), 201
 
     # Las respuestas humanas siempre se asocian al usuario de la sesión.
     usuario_id = _usuario_id_sesion()
@@ -136,7 +138,7 @@ def create_answer():
     db.session.add(respuesta)
     db.session.commit()
 
-    return jsonify(_serialize_answer(respuesta)), 201
+    return jsonify(_serialize_answer(respuesta, usuario_id)), 201
 
 
 @bp.get("/question/<int:question_id>")
@@ -149,7 +151,10 @@ def list_answers_for_question(question_id):
     )
     return jsonify({
         "question_id": question_id,
-        "answers": [_serialize_answer(respuesta) for respuesta in respuestas],
+        "answers": [
+            _serialize_answer(respuesta, _usuario_id_sesion())
+            for respuesta in respuestas
+        ],
     }), 200
 
 
@@ -165,7 +170,7 @@ def mark_as_accepted(answer_id: int):
 
     db.session.commit()
 
-    return jsonify(_serialize_answer(respuesta)), 200
+    return jsonify(_serialize_answer(respuesta, _usuario_id_sesion())), 200
 
 
 @bp.delete("/<int:answer_id>/accept")
@@ -177,4 +182,4 @@ def unmark_as_accepted(answer_id: int):
     respuesta.aceptada = False
     db.session.commit()
 
-    return jsonify(_serialize_answer(respuesta)), 200
+    return jsonify(_serialize_answer(respuesta, _usuario_id_sesion())), 200
