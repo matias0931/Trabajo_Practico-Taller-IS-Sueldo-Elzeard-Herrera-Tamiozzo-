@@ -41,7 +41,7 @@ def create_question():
     errors.append("La pregunta debe estar asociada a una categoría.")
   else:
     # Verificar existencia de la categoría
-    categoria_existente = Categoria.query.get(categoria_id)
+    categoria_existente = db.session.get(Categoria, categoria_id)
     if not categoria_existente:
       errors.append(
           f"La categoría con ID {categoria_id} no existe en la base de datos."
@@ -55,7 +55,7 @@ def create_question():
   if isinstance(tag_ids_o_nombres, list):
     for item in tag_ids_o_nombres:
       if isinstance(item, int):
-        tag_obj = Tag.query.get(item)
+        tag_obj = db.session.get(Tag, item)
         if tag_obj:
           tags_asociados.append(tag_obj)
       elif isinstance(item, str) and item.strip():
