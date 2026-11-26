@@ -71,7 +71,7 @@ def register_post():
     db.session.add(nuevo_usuario)
     db.session.commit()
 
-    return render_template("register.html", success="¡Registro exitoso! Ya podés iniciar sesión.")
+    return redirect(url_for("auth.login_get"))
 
 
 @bp.get("/login")
