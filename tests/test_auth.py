@@ -165,10 +165,8 @@ def test_login_post_exitoso_guarda_sesion(app, client):
             "/auth/login",
             data={"email": "SOFIA@gmail.com", "password": "Password1"},
         )
-        assert response.status_code == 200
-        assert "Bienvenido/a, sofia_ok. Sesión iniciada correctamente." in response.get_data(
-            as_text=True
-        )
+        assert response.status_code == 302
+        assert response.headers["Location"].endswith("/foro")
 
     with client.session_transaction() as sess:
         assert sess.get("usuario_id") == user_id
