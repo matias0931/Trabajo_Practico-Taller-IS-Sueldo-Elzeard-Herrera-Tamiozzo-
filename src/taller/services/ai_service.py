@@ -1,13 +1,18 @@
+import logging
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai import errors as genai_errors
 
 from ..extensions import db
 from ..models import Pregunta, Respuesta
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
+
 
 def generar_texto_ia(titulo: str, cuerpo: str) -> str:
     """Genera una respuesta coherente usando Gemini API o un fallback local."""
@@ -39,20 +44,23 @@ def generar_texto_ia(titulo: str, cuerpo: str) -> str:
                 texto = (response.text or "").strip()
                 if len(texto) >= 5:
                     return texto
-            except Exception as e:
-                print(f"Error con {modelo}: {e}")
+            except (genai_errors.APIError, OSError, ValueError, KeyError) as exc:
+                logger.warning("Error con %s: %s", modelo, exc)
 
     return (
         f"Respuesta automática de IA sobre '{titulo}': "
         f"revisá los conceptos principales relacionados con tu consulta ({cuerpo[:120]})."
     )
 
+
 def crear_respuesta_ia(pregunta: Pregunta) -> Respuesta:
     """Genera, valida y guarda una respuesta de IA para una pregunta."""
     texto = generar_texto_ia(pregunta.titulo, pregunta.cuerpo).strip()
 
     if not texto or len(texto) < 5:
-        raise ValueError("La respuesta generada por la IA debe tener al menos 5 caracteres.")
+        raise ValueError(
+            "La respuesta generada por la IA debe tener al menos 5 caracteres."
+        )
 
     respuesta = Respuesta(
         cuerpo=texto,
@@ -68,11 +76,10 @@ def crear_respuesta_ia(pregunta: Pregunta) -> Respuesta:
 def responder_preguntas_sin_respuesta(horas: int = 24) -> list[Respuesta]:
     """Busca preguntas sin respuestas con más de `horas` de antigüedad y las responde."""
     # SQLite guarda datetimes sin tzinfo; quitamos tzinfo para comparar seguro
-    limite = (datetime.now(timezone.utc) - timedelta(hours=horas)).replace(tzinfo=None)
+    limite = (datetime.now(UTC) - timedelta(hours=horas)).replace(tzinfo=None)
 
     pendientes = (
-        Pregunta.query
-        .filter(Pregunta.creada_en <= limite)
+        Pregunta.query.filter(Pregunta.creada_en <= limite)
         .filter(~Pregunta.respuestas.any())
         .all()
     )

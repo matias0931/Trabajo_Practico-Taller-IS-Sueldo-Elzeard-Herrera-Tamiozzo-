@@ -49,7 +49,9 @@ def test_create_question_validaciones_devuelve_400(app, client, usuario):
     assert response.status_code == 400
     data = response.get_json()
     assert "errors" in data
-    assert "El título es obligatorio y debe tener más de 5 caracteres." in data["errors"]
+    assert (
+        "El título es obligatorio y debe tener más de 5 caracteres." in data["errors"]
+    )
     assert (
         "El cuerpo descriptivo es obligatorio y debe tener más de 5 caracteres."
         in data["errors"]
@@ -97,7 +99,9 @@ def test_create_question_exitosa_y_crea_tags(app, client, usuario):
         assert response.status_code == 201
         data = response.get_json()
         assert data["titulo"] == "¿Cómo probar endpoints en Flask?"
-        assert data["cuerpo"] == "Quiero verificar códigos HTTP, JSON y sesión en tests."
+        assert (
+            data["cuerpo"] == "Quiero verificar códigos HTTP, JSON y sesión en tests."
+        )
         assert data["categoria_id"] == cat_id
         assert data["usuario_id"] == usuario
         assert set(data["tags"]) == {"pytest", "flask"}

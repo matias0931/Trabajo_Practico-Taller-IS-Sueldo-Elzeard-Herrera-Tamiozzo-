@@ -1,6 +1,8 @@
-from flask import Blueprint, redirect, render_template, request, session, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
 import re
+
+from flask import Blueprint, redirect, render_template, request, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from ..extensions import db
 from ..models.models import Rol, UsuarioH
 
@@ -31,14 +33,16 @@ def register_post():
 
     # 1. Validar que vengan todos los campos
     if not username or not email or not password:
-        return render_template("register.html", error="Todos los campos son obligatorios.")
+        return render_template(
+            "register.html", error="Todos los campos son obligatorios."
+        )
 
     # 2. Validar correo (sin caracteres especiales, con al menos una letra y dominios permitidos)
     patron_email = r"^(?=.*[a-z])[a-z0-9.]{6,30}@(gmail\.com|hotmail\.com|outlook\.com|outlook\.es)$"
     if not re.match(patron_email, email):
         return render_template(
             "register.html",
-            error="Correo inválido. No uses caracteres especiales y elegí un dominio permitido (@gmail.com, @hotmail.com, @outlook.com o @outlook.es)."
+            error="Correo inválido. No uses caracteres especiales y elegí un dominio permitido (@gmail.com, @hotmail.com, @outlook.com o @outlook.es).",
         )
 
     # 3. Validar seguridad de la contraseña
@@ -48,11 +52,15 @@ def register_post():
 
     # 4. Verificar que el correo no esté registrado ya
     if UsuarioH.query.filter_by(email=email).first():
-        return render_template("register.html", error="Ya existe una cuenta registrada con ese correo.")
+        return render_template(
+            "register.html", error="Ya existe una cuenta registrada con ese correo."
+        )
 
     # 5. Verificar que el nombre de usuario no esté en uso
     if UsuarioH.query.filter_by(username=username).first():
-        return render_template("register.html", error="Ese nombre de usuario ya está ocupado.")
+        return render_template(
+            "register.html", error="Ese nombre de usuario ya está ocupado."
+        )
 
     # 6. Obtener o crear el rol 'estudiante'
     rol_estudiante = Rol.query.filter_by(nombre="estudiante").first()
@@ -85,7 +93,9 @@ def login_post():
     password = request.form.get("password", "")
 
     if not email or not password:
-        return render_template("login.html", error="Completá el correo y la contraseña.")
+        return render_template(
+            "login.html", error="Completá el correo y la contraseña."
+        )
 
     usuario = UsuarioH.query.filter_by(email=email).first()
 
@@ -102,9 +112,8 @@ def login_post():
 def logout():
     session.clear()
     return redirect(url_for("index"))
-    
+
+
 @bp.route("/")
 def index():
     return render_template("index.html")
-    
-  

@@ -71,9 +71,11 @@ def _respuesta_autorizada(answer_id: int):
     # Solo el autor de la pregunta puede marcar o desmarcar una respuesta como útil.
     if respuesta.pregunta.usuario_id != usuario_id:
         return None, (
-            jsonify({
-                "error": "Solo el autor de la pregunta puede aceptar o desmarcar respuestas."
-            }),
+            jsonify(
+                {
+                    "error": "Solo el autor de la pregunta puede aceptar o desmarcar respuestas."
+                }
+            ),
             403,
         )
 
@@ -84,7 +86,9 @@ def _respuesta_autorizada(answer_id: int):
 def create_answer():
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
-        return jsonify({"error": "El cuerpo de la petición debe ser un JSON válido."}), 400
+        return jsonify(
+            {"error": "El cuerpo de la petición debe ser un JSON válido."}
+        ), 400
 
     raw_question_id = data.get("question_id")
     if raw_question_id is None or str(raw_question_id).strip() == "":
@@ -93,7 +97,9 @@ def create_answer():
     try:
         question_id = int(raw_question_id)
     except (TypeError, ValueError):
-        return jsonify({"error": "El campo 'question_id' debe ser un número entero."}), 400
+        return jsonify(
+            {"error": "El campo 'question_id' debe ser un número entero."}
+        ), 400
 
     # La respuesta debe apuntar a una pregunta que exista en la base de datos.
     pregunta = db.session.get(Pregunta, question_id)
@@ -114,7 +120,9 @@ def create_answer():
     # Las respuestas humanas siempre se asocian al usuario de la sesión.
     usuario_id = _usuario_id_sesion()
     if usuario_id is None:
-        return jsonify({"error": "Debés iniciar sesión para publicar una respuesta."}), 401
+        return jsonify(
+            {"error": "Debés iniciar sesión para publicar una respuesta."}
+        ), 401
 
     raw_body = data.get("body")
     if not isinstance(raw_body, str):
@@ -122,11 +130,15 @@ def create_answer():
 
     body = raw_body.strip()
     if not body:
-        return jsonify({"error": "El cuerpo de una respuesta no puede estar vacío."}), 400
+        return jsonify(
+            {"error": "El cuerpo de una respuesta no puede estar vacío."}
+        ), 400
     if len(body) < MIN_BODY_LENGTH:
-        return jsonify({
-            "error": f"El cuerpo de una respuesta debe contener al menos {MIN_BODY_LENGTH} caracteres."
-        }), 400
+        return jsonify(
+            {
+                "error": f"El cuerpo de una respuesta debe contener al menos {MIN_BODY_LENGTH} caracteres."
+            }
+        ), 400
 
     respuesta = Respuesta(
         cuerpo=body,
@@ -149,13 +161,15 @@ def list_answers_for_question(question_id):
         .order_by(Respuesta.creada_en.asc())
         .all()
     )
-    return jsonify({
-        "question_id": question_id,
-        "answers": [
-            _serialize_answer(respuesta, _usuario_id_sesion())
-            for respuesta in respuestas
-        ],
-    }), 200
+    return jsonify(
+        {
+            "question_id": question_id,
+            "answers": [
+                _serialize_answer(respuesta, _usuario_id_sesion())
+                for respuesta in respuestas
+            ],
+        }
+    ), 200
 
 
 @bp.patch("/<int:answer_id>/accept")
@@ -166,7 +180,7 @@ def mark_as_accepted(answer_id: int):
 
     # Si solo puede haber una respuesta aceptada por pregunta, desmarcamos las demás.
     for otra in Respuesta.query.filter_by(pregunta_id=respuesta.pregunta_id).all():
-        otra.aceptada = (otra.id == answer_id)
+        otra.aceptada = otra.id == answer_id
 
     db.session.commit()
 

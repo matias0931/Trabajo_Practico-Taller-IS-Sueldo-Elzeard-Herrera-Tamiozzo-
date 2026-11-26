@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from taller.extensions import db
 from taller.models.models import Respuesta
@@ -19,7 +19,10 @@ def test_create_answer_json_o_question_id_invalido_devuelve_400(client):
         content_type="text/plain",
     )
     assert resp_sin_json.status_code == 400
-    assert resp_sin_json.get_json()["error"] == "El cuerpo de la petición debe ser un JSON válido."
+    assert (
+        resp_sin_json.get_json()["error"]
+        == "El cuerpo de la petición debe ser un JSON válido."
+    )
 
     resp_sin_qid = client.post("/answers/", json={"body": "Respuesta válida"})
     assert resp_sin_qid.status_code == 400
@@ -30,14 +33,20 @@ def test_create_answer_json_o_question_id_invalido_devuelve_400(client):
         json={"question_id": "abc", "body": "Respuesta válida"},
     )
     assert resp_qid_texto.status_code == 400
-    assert resp_qid_texto.get_json()["error"] == "El campo 'question_id' debe ser un número entero."
+    assert (
+        resp_qid_texto.get_json()["error"]
+        == "El campo 'question_id' debe ser un número entero."
+    )
 
 
 def test_create_answer_pregunta_inexistente_devuelve_404(app, client):
     with app.app_context():
         response = client.post(
             "/answers/",
-            json={"question_id": 9999, "body": "Respuesta para pregunta que no existe."},
+            json={
+                "question_id": 9999,
+                "body": "Respuesta para pregunta que no existe.",
+            },
         )
         assert response.status_code == 404
         assert response.get_json()["error"] == "La pregunta indicada no existe."
@@ -50,7 +59,10 @@ def test_create_answer_sin_sesion_devuelve_401(app, client, pregunta):
             json={"question_id": pregunta, "body": "Respuesta sin usuario en sesión."},
         )
         assert response.status_code == 401
-        assert response.get_json()["error"] == "Debés iniciar sesión para publicar una respuesta."
+        assert (
+            response.get_json()["error"]
+            == "Debés iniciar sesión para publicar una respuesta."
+        )
 
 
 def test_create_answer_cuerpo_invalido_devuelve_400(app, client, usuario, pregunta):
@@ -69,14 +81,20 @@ def test_create_answer_cuerpo_invalido_devuelve_400(app, client, usuario, pregun
             json={"question_id": pregunta, "body": "    "},
         )
         assert resp_vacio.status_code == 400
-        assert resp_vacio.get_json()["error"] == "El cuerpo de una respuesta no puede estar vacío."
+        assert (
+            resp_vacio.get_json()["error"]
+            == "El cuerpo de una respuesta no puede estar vacío."
+        )
 
         resp_no_str = client.post(
             "/answers/",
             json={"question_id": pregunta, "body": 12345},
         )
         assert resp_no_str.status_code == 400
-        assert resp_no_str.get_json()["error"] == "El cuerpo de la respuesta debe ser un texto."
+        assert (
+            resp_no_str.get_json()["error"]
+            == "El cuerpo de la respuesta debe ser un texto."
+        )
 
 
 def test_create_answer_humana_exitosa(app, client, otro_usuario, pregunta):
@@ -93,7 +111,10 @@ def test_create_answer_humana_exitosa(app, client, otro_usuario, pregunta):
         assert response.status_code == 201
         data = response.get_json()
         assert data["question_id"] == pregunta
-        assert data["body"] == "Cada request pasa por el dispatcher y ejecuta la vista asociada."
+        assert (
+            data["body"]
+            == "Cada request pasa por el dispatcher y ejecuta la vista asociada."
+        )
         assert data["is_accepted"] is False
         assert data["author"] == {
             "id": otro_usuario,
@@ -124,7 +145,9 @@ def test_create_answer_ia_exitosa(app, client, usuario, pregunta, monkeypatch):
         db.session.commit()
         return resp
 
-    monkeypatch.setattr("taller.routes.answers.crear_respuesta_ia", fake_crear_respuesta_ia)
+    monkeypatch.setattr(
+        "taller.routes.answers.crear_respuesta_ia", fake_crear_respuesta_ia
+    )
 
     with app.app_context():
         response = client.post(
@@ -159,8 +182,8 @@ def test_create_answer_ia_error_devuelve_502(app, client, pregunta, monkeypatch)
 
 def test_list_answers_for_question_ordenadas(app, client, usuario, pregunta):
     with app.app_context():
-        t0 = datetime.now(timezone.utc) - timedelta(minutes=10)
-        t1 = datetime.now(timezone.utc) - timedelta(minutes=5)
+        t0 = datetime.now(UTC) - timedelta(minutes=10)
+        t1 = datetime.now(UTC) - timedelta(minutes=5)
 
         r1 = Respuesta(
             cuerpo="Primera respuesta más antigua.",
@@ -208,7 +231,9 @@ def test_accept_answer_permisos_y_errores(app, client, otro_usuario, respuesta):
         assert resp_404.status_code == 404
 
 
-def test_marcar_y_desmarcar_respuesta_aceptada(app, client, usuario, pregunta, respuesta):
+def test_marcar_y_desmarcar_respuesta_aceptada(
+    app, client, usuario, pregunta, respuesta
+):
     _login(client, usuario)
 
     with app.app_context():
