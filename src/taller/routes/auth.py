@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, redirect, render_template, request, session, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 from ..extensions import db
@@ -101,8 +101,10 @@ def login_post():
 @bp.get("/logout")
 def logout():
     session.clear()
-    return render_template("login.html", success="Cerraste sesión correctamente.")
-
+    return redirect(url_for("index"))
+    
 @bp.route("/")
 def index():
     return render_template("index.html")
+    
+  
